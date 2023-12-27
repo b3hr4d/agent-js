@@ -5,9 +5,13 @@ import FormField from './FormField';
 import { actor } from '../App';
 import { FormProvider, useForm } from 'react-hook-form';
 
-interface FormProps extends ExtractedField {}
+interface FormProps {
+  methodName: string;
+  fields: ExtractedField[];
+  defaultValues: any;
+}
 
-const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
+const Form: React.FC<FormProps> = ({ methodName, defaultValues, fields }) => {
   const [argState, setArgState] = useState<any>(null);
   const [argErrorState, setArgErrorState] = useState<any>(null);
   const [resultState, setResultState] = useState<any>(null);
@@ -57,7 +61,7 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
       console.log('args', args);
 
       try {
-        const result = await actor[label as keyof typeof actor](...(args as any));
+        const result = await actor[methodName as keyof typeof actor](...(args as any));
         console.log('result', result);
         setArgState(args);
         setResultState(result);
@@ -66,7 +70,7 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
         setResultState((error as Error).message);
       }
     },
-    [label],
+    [methodName],
   );
 
   return (
@@ -75,14 +79,14 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
         onSubmit={methods.handleSubmit(onSubmit)}
         className="border border-gray-500 rounded p-2 mt-2 w-full"
       >
-        <h1 className="text-xl font-bold mb-4">{label}</h1>
+        <h1 className="text-xl font-bold mb-4">{methodName}</h1>
         {fields?.map((field, index) => {
           return (
             <div key={index} className="mb-2">
               <FormField
                 field={field}
-                registerName={`arg${index}`}
-                errors={methods.formState.errors[`arg${index}`]}
+                registerName={`${methodName}-arg${index}`}
+                errors={methods.formState.errors[`${methodName}-arg${index}`]}
               />
             </div>
           );

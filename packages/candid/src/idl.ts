@@ -1275,8 +1275,8 @@ export class TupleClass<T extends any[]> extends RecordClass {
   protected readonly _components: Type[];
 
   public extractField(label?: string): ExtractedField {
-    const { fields, defaultValues } = this._fields.reduce(
-      (acc, [_, type]) => {
+    const { fields, defaultValues } = this._components.reduce(
+      (acc, type) => {
         const field = type.extractField();
         acc.fields.push(field);
         acc.defaultValues.push(field.defaultValues);

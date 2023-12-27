@@ -1,6 +1,8 @@
 import { Actor } from '@dfinity/agent';
 import { createActor } from './declarations/candid';
 import Form from './components/Form';
+import { UIExtract } from '@dfinity/candid/lib/cjs/candid-react';
+import { ExtractedField } from '@dfinity/candid';
 
 export const actor = createActor('bkyz2-fmaaa-aaaaa-qaaaq-cai', {
   agentOptions: {
@@ -8,19 +10,36 @@ export const actor = createActor('bkyz2-fmaaa-aaaaa-qaaaq-cai', {
   },
 });
 
-export const actorInterface = Actor.interfaceOf(actor);
+export const actorInterface = Actor.interfaceOf(actor)._fields;
 
-const field = actorInterface.extractField();
+const allFunction = actorInterface.map(([methodName, method]) => {
+  // Process input types
+  const { fields, defaultValues } = method.argTypes.reduce(
+    (acc, argType, index) => {
+      const field = argType.accept(new UIExtract(), argType.name);
+      acc.fields.push(field);
+      acc.defaultValues[`${methodName}-arg${index}`] = field.defaultValues;
+      return acc;
+    },
+    { fields: [] as ExtractedField[], defaultValues: {} as any },
+  );
 
-console.log('field', field);
+  return {
+    methodName,
+    fields,
+    defaultValues,
+  };
+});
+
+console.log('field', allFunction);
 
 interface CandidProps {}
 
 const App: React.FC<CandidProps> = () => {
   return (
     <div className="p-2 max-w-3xl mx-auto">
-      {field.fields.map(field => (
-        <Form {...field} key={field.label} />
+      {allFunction.map(field => (
+        <Form {...field} key={field.methodName} />
       ))}
     </div>
   );
